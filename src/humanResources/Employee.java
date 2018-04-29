@@ -1,6 +1,8 @@
 package humanResources;
 
-public abstract class Employee implements Comparable {
+import java.util.Comparator;
+
+public abstract class Employee implements Comparable<Employee> {
     private String firstName;
     private String secondName;
     private JobTitlesEnum jobTitle;
@@ -119,7 +121,16 @@ public abstract class Employee implements Comparable {
     }
 
     @Override
-    public int compareTo (Employee o) {
+    public int compareTo(Employee o) {
         return Integer.compare(salary + getBonus(), o.salary + o.getBonus());
     }
+
+    public static Comparator<Employee> salaryAndBonusComparator = new Comparator<Employee>() {
+
+        @Override
+        public int compare(Employee currentEmployee, Employee comparableEmployee) {
+            return (int) (currentEmployee.getSalary() + currentEmployee.getBonus() -
+                    (comparableEmployee.getSalary() + comparableEmployee.getBonus()));
+        }
+    };
 }

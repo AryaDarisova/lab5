@@ -3,14 +3,13 @@ package humanResources;
 import humanResources.exceptions.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
-public interface EmployeeGroup {
-    void add(Employee employee) throws AlreadyAddedException;
+public interface EmployeeGroup extends List<Employee> {
     Employee[] sortedEmployees();
     Employee[] getEmployees();
-    int employeeQuantity();
+    int size();
     boolean remove(String firstName, String secondName);
-    boolean remove(Employee employee);
     Employee getEmployee(String firstName, String secondName);
     String getName();
     void setName(String name);

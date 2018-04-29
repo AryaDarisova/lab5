@@ -1,8 +1,11 @@
 package humanResources;
 
-import humanResources.exceptions.*;
+import humanResources.exceptions.IllegalDatesException;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 
 public class StaffEmployee extends Employee implements BusinessTraveller{
     private int bonus;
@@ -37,7 +40,7 @@ public class StaffEmployee extends Employee implements BusinessTraveller{
     public StaffEmployee(String firstName, String secondName, JobTitlesEnum jobTitle, int salary, BusinessTravel[] travels) throws IllegalDatesException {
         super(firstName, secondName, jobTitle, salary);
         for (BusinessTravel temp : travels) {
-            addTravel(temp);
+            add(temp);
             travelsQuantity++;
         }
         bonus = BONUS;
@@ -53,11 +56,6 @@ public class StaffEmployee extends Employee implements BusinessTraveller{
      */
 
     @Override
-    public int getTravelsQuantity() {
-        return travelsQuantity;
-    }
-
-    @Override
     public int getBonus() {
         return bonus;
     }
@@ -65,25 +63,6 @@ public class StaffEmployee extends Employee implements BusinessTraveller{
     @Override
     public void setBonus(int bonus) {
         this.bonus = bonus;
-    }
-
-    @Override
-    public boolean addTravel(BusinessTravel travel) throws IllegalDatesException {
-        LocalDate day = travel.getStartTrip();
-        for (int i = 0; i < travel.getDaysCount(); i++) {
-            for (BusinessTravel x: this.getTravels()) {
-                LocalDate dayTravel = x.getStartTrip();
-                for (int j = 0; j < x.getDaysCount(); j++) {
-                    if (day.isEqual(dayTravel))
-                        throw new IllegalDatesException("Employee already have travel in that time!");
-                    dayTravel = dayTravel.plusDays(1);
-                }
-            }
-            day = day.plusDays(1);
-        }
-        ListNode node = new ListNode(travel);
-        addNode(node);
-        return true;
     }
 
     private void addNode(ListNode node) {
@@ -102,8 +81,9 @@ public class StaffEmployee extends Employee implements BusinessTraveller{
     public BusinessTravel[] getTravels() {
         BusinessTravel[] getTravels = new BusinessTravel[travelsQuantity];
         ListNode node = head;
-        for (int i = 0; i < travelsQuantity; i++) {
-            getTravels[i] = node.value;
+        int k = 0;
+        while (node != null) {
+            getTravels[k++] = node.value;
             node = node.next;
         }
         return getTravels;
@@ -142,11 +122,184 @@ public class StaffEmployee extends Employee implements BusinessTraveller{
     }
 
     @Override
+    public int size() {
+        return travelsQuantity;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return travelsQuantity == 0;
+    }
+
+    @Override
+    public boolean contains(Object o) {
+        ListNode node = head;
+        while (node != null) {
+            if (node.value.equals(o))
+                return true;
+            node = node.next;
+        }
+        return false;
+    }
+
+    @Override
+    public Iterator<BusinessTravel> iterator() {
+        return new Iterator<BusinessTravel>() {
+            private ListNode current = new ListNode(null).next = head;
+
+            @Override
+            public boolean hasNext() {
+                return current.next != null;
+            }
+
+            @Override
+            public BusinessTravel next() {
+                if (hasNext())
+                    current = current.next;
+                return current.value;
+            }
+        };
+    }
+
+    @Override
+    public Object[] toArray() {
+        BusinessTravel[] arrayOfTravels = new BusinessTravel[travelsQuantity];
+        ListNode node = head;
+        int k = 0;
+        while (node != null) {
+            arrayOfTravels[k] = node.value;
+            node = node.next;
+            k++;
+        }
+        return arrayOfTravels;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T[] toArray(T[] a) {
+        T[] arrayOfTravels = (T[]) toArray();
+        if (a.length < travelsQuantity)
+            return (T[]) Arrays.copyOf(arrayOfTravels, travelsQuantity, a.getClass());
+        System.arraycopy(arrayOfTravels, 0, a, 0, travelsQuantity);
+        if (a.length > travelsQuantity)
+            a[travelsQuantity] = null;
+        return a;
+    }
+
+    @Override
+    public boolean add(BusinessTravel travel) {
+        LocalDate day = travel.getStartTrip();
+        for (int i = 0; i < travel.getDaysCount(); i++) {
+            for (BusinessTravel x: this.getTravels()) {
+                LocalDate dayTravel = x.getStartTrip();
+                for (int j = 0; j < x.getDaysCount(); j++) {
+                    if (day.isEqual(dayTravel))
+                        throw new IllegalDatesException("Employee already have travel in that time!");
+                    dayTravel = dayTravel.plusDays(1);
+                }
+            }
+            day = day.plusDays(1);
+        }
+        ListNode node = new ListNode(travel);
+        addNode(node);
+        return true;
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        ListNode current = head;
+        ListNode previous = null;
+
+        while (current != null) {
+            if (current.value.equals(o)) {
+                removeNode(previous, current);
+                travelsQuantity--;
+                return true;
+            }
+            previous = current;
+            current = current.next;
+        }
+        return false;
+    }
+
+    private boolean removeNode(ListNode previous, ListNode current){
+        if (previous != null) {
+            previous.next = current.next;
+        }
+        travelsQuantity--;
+        return true;
+    }
+
+    @Override
+    public boolean containsAll(Collection<?> c) {
+        for (Object element : c) {
+            if (!contains(element))
+                return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends BusinessTravel> c) {
+        for (BusinessTravel element : c) {
+            add(element);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        ListNode current = head;
+        ListNode previous = null;
+        while (current != null) {
+            if (!c.contains(current.value)) {
+                removeNode(previous, current);
+                current = previous.next;
+            } else {
+                previous = current;
+                current = current.next;
+            }
+
+        }
+        return true;
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        ListNode current = head;
+        ListNode previous = null;
+        while (current != null) {
+            if (c.contains(current.value)) {
+                removeNode(previous, current);
+                current = previous.next;
+            } else {
+                previous = current;
+                current = current.next;
+            }
+
+        }
+        return true;
+    }
+
+    @Override
+    public void clear() {
+        ListNode current = head;
+        ListNode next;
+        while (current.next != null) {
+            next = current.next;
+            current.next = null;
+            current.value = null;
+            current = next;
+        }
+        head = null;
+        tail = null;
+    }
+
+    @Override
     public boolean equals(Object obj)  {
         if (super.equals(obj)) {
             StaffEmployee equalsEmployee = (StaffEmployee) obj;
             ListNode current = head;
-            //теперь тут цикл
             while(current != null) {
                 if (this.travelsQuantity != equalsEmployee.travelsQuantity)
                     return false;

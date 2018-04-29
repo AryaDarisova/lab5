@@ -1,6 +1,7 @@
 package humanResources;
 
 import java.time.LocalDate;
+import java.util.*;
 
 import humanResources.exceptions.*;
 
@@ -46,11 +47,48 @@ public class Department implements EmployeeGroup{
     */
 
     @Override
-    public void add(Employee employee) throws AlreadyAddedException {
-        for (Employee x: employees) {
-            if (x == employee)
-                throw new AlreadyAddedException("You are already added this employee!");
+    public int size() {
+        return size;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return size == 0;
+    }
+
+    @Override
+    public boolean contains(Object o) {
+        for (Employee element: employees) {
+            if (element.equals(o))
+                return true;
         }
+        return false;
+    }
+
+    @Override
+    public Iterator<Employee> iterator() {
+        return null;
+    }
+
+    @Override
+    public Object[] toArray() {
+        Employee[] employeesInArray = new Employee[size];
+        System.arraycopy(employees, 0, employeesInArray, 0, size);
+        return employeesInArray;
+    }
+
+    @Override
+    public <T> T[] toArray(T[] a) {
+        if (a.length < size)
+            return (T[]) Arrays.copyOf(employees, size, a.getClass());
+        System.arraycopy(employees, 0, a, 0, size);
+        if (a.length > size)
+            a[size] = null;
+        return a;
+    }
+
+    @Override
+    public boolean add(Employee employee) {
         if (size >= employees.length) {
             Employee[] employeesResize = new Employee[size * 2];
             System.arraycopy(employees, 0, employeesResize, 0, employees.length);
@@ -58,6 +96,55 @@ public class Department implements EmployeeGroup{
         }
         employees[size] = employee;
         size++;
+        return true;
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        for (int i = 0; i < size; i++) {
+            if (employees[i] == o) {
+                for (int j = i + 1; j < size; j++) {
+                    employees[i] = employees[j];
+                }
+                size--;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean containsAll(Collection<?> c) {
+        for (Object element: c) {
+            if (!contains(element))
+                return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends Employee> c) {
+        return false;
+    }
+
+    @Override
+    public boolean addAll(int index, Collection<? extends Employee> c) {
+        return false;
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        return false;
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        return false;
+    }
+
+    @Override
+    public void clear() {
+
     }
 
     /*
@@ -82,15 +169,6 @@ public class Department implements EmployeeGroup{
             }
         }
         return remove;
-    }
-
-    /*
-    - возвращающий общее число сотрудников в отделе.
-    */
-
-    @Override
-    public int employeeQuantity() {
-        return size;
     }
 
     /*
@@ -142,15 +220,7 @@ public class Department implements EmployeeGroup{
     @Override
     public Employee[] sortedEmployees() {
         Employee[] sortedEmployees = getEmployees();
-        for (int i = sortedEmployees.length - 1; i > 0; i--) {
-            for (int j = 0; j < i; j++) {
-                if (sortedEmployees[j].getSalary() < sortedEmployees[j + 1].getSalary()) {
-                    Employee replace = sortedEmployees[j];
-                    sortedEmployees[j] = sortedEmployees[j + 1];
-                    sortedEmployees[j + 1] = replace;
-                }
-            }
-        }
+        Arrays.sort(sortedEmployees, Employee.salaryAndBonusComparator.reversed());
         return sortedEmployees;
     }
 
@@ -168,7 +238,7 @@ public class Department implements EmployeeGroup{
 
     @Override
     public Employee mostValuableEmployee() {
-        Employee bestEmployeeInDepartment = null;
+        Employee bestEmployeeInDepartment;
         bestEmployeeInDepartment = getEmployees()[0];
         for (int i = 0; i < size; i++) {
             if (employees[i].getSalary() > bestEmployeeInDepartment.getSalary()) {
@@ -226,25 +296,6 @@ public class Department implements EmployeeGroup{
     }
 
     /*
-    - удаляющий сотрудника. Принимает экземпляр сотрудника в качестве параметра.
-     */
-
-    @Override
-    public boolean remove(Employee employee) {
-        boolean remove = false;
-        for (int i = 0; i < size; i++) {
-            if (employees[i] == employee) {
-                for (int j = i + 1; j < size; j++) {
-                    employees[i] = employees[j];
-                }
-                size--;
-                remove = true;
-            }
-        }
-        return remove;
-    }
-
-    /*
     - удаляющий всех сотрудников с заданной должностью (принимает должность в качестве входного параметра).
      */
 
@@ -298,7 +349,7 @@ public class Department implements EmployeeGroup{
         int travellers = 0;
         for (int i = 0; i < size; i++) {
             if (employees[i] instanceof StaffEmployee)
-                if (((StaffEmployee) employees[i]).getTravelsQuantity() > 0) {
+                if (((StaffEmployee) employees[i]).size() > 0) {
                     travellers++;
                 }
         }
@@ -323,7 +374,7 @@ public class Department implements EmployeeGroup{
      */
 
     public boolean isTraveller(Employee x) {
-        return ((StaffEmployee) x).getTravelsQuantity() > 0;
+        return ((StaffEmployee) x).size() > 0;
     }
 
     /*
@@ -387,6 +438,51 @@ public class Department implements EmployeeGroup{
             hash ^= x.hashCode();
         }
         return name.hashCode() ^ hash ^ size;
+    }
+
+    @Override
+    public Employee get(int index) {
+        return null;
+    }
+
+    @Override
+    public Employee set(int index, Employee element) {
+        return null;
+    }
+
+    @Override
+    public void add(int index, Employee element) {
+
+    }
+
+    @Override
+    public Employee remove(int index) {
+        return null;
+    }
+
+    @Override
+    public int indexOf(Object o) {
+        return 0;
+    }
+
+    @Override
+    public int lastIndexOf(Object o) {
+        return 0;
+    }
+
+    @Override
+    public ListIterator<Employee> listIterator() {
+        return null;
+    }
+
+    @Override
+    public ListIterator<Employee> listIterator(int index) {
+        return null;
+    }
+
+    @Override
+    public List<Employee> subList(int fromIndex, int toIndex) {
+        return null;
     }
 
     /*

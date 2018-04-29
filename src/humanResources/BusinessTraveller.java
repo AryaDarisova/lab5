@@ -2,8 +2,9 @@ package humanResources;
 
 import humanResources.exceptions.IllegalDatesException;
 import java.time.LocalDate;
+import java.util.Set;
 
-public interface BusinessTraveller {
+public interface BusinessTraveller extends Set<BusinessTravel> {
 
     /*
     2 метода:
@@ -12,9 +13,9 @@ public interface BusinessTraveller {
    - возвращающий массив командировок.
      */
 
-    boolean addTravel(BusinessTravel travel) throws IllegalDatesException;
+    boolean add(BusinessTravel travel);
     BusinessTravel[] getTravels();
-    int getTravelsQuantity();
+    int size();
     boolean isOnTrip();
     int isOnTrip(LocalDate startTrip, LocalDate endTrip);
 }

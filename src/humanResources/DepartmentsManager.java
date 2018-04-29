@@ -139,7 +139,7 @@ public class DepartmentsManager implements GroupsManager {
     public int employeesQuantity() {
         int employeesQuantity = 0;
         for (int i = 0; i < size; i++) {
-            employeesQuantity += departments[i].employeeQuantity();
+            employeesQuantity += departments[i].size();
         }
         return employeesQuantity;
     }
