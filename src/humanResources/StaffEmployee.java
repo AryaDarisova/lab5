@@ -145,18 +145,21 @@ public class StaffEmployee extends Employee implements BusinessTraveller{
     @Override
     public Iterator<BusinessTravel> iterator() {
         return new Iterator<BusinessTravel>() {
-            private ListNode current = new ListNode(null).next = head;
+            ListNode node = head;
+            int i = 0;
 
             @Override
             public boolean hasNext() {
-                return current.next != null;
+                return i < size();
             }
 
             @Override
             public BusinessTravel next() {
-                if (hasNext())
-                    current = current.next;
-                return current.value;
+                if (hasNext()) {
+                    node = node.next;
+                    i++;
+                }
+                return node.value;
             }
         };
     }
@@ -213,7 +216,6 @@ public class StaffEmployee extends Employee implements BusinessTraveller{
         while (current != null) {
             if (current.value.equals(o)) {
                 removeNode(previous, current);
-                travelsQuantity--;
                 return true;
             }
             previous = current;
@@ -266,17 +268,8 @@ public class StaffEmployee extends Employee implements BusinessTraveller{
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        ListNode current = head;
-        ListNode previous = null;
-        while (current != null) {
-            if (c.contains(current.value)) {
-                removeNode(previous, current);
-                current = previous.next;
-            } else {
-                previous = current;
-                current = current.next;
-            }
-
+        for (Object element: c) {
+            remove(element);
         }
         return true;
     }

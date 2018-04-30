@@ -67,7 +67,21 @@ public class Department implements EmployeeGroup{
 
     @Override
     public Iterator<Employee> iterator() {
-        return null;
+        return new Iterator<Employee>() {
+            int i = -1;
+
+            @Override
+            public boolean hasNext() {
+                return i < size;
+            }
+
+            @Override
+            public Employee next() {
+                if (hasNext())
+                    return employees[i++];
+                return employees[i];
+            }
+        };
     }
 
     @Override
@@ -78,6 +92,7 @@ public class Department implements EmployeeGroup{
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
         if (a.length < size)
             return (T[]) Arrays.copyOf(employees, size, a.getClass());
@@ -124,27 +139,56 @@ public class Department implements EmployeeGroup{
 
     @Override
     public boolean addAll(Collection<? extends Employee> c) {
-        return false;
+        if (c.size() + size > employees.length) {
+            Employee[] employeesResize = new Employee[employees.length + c.size()];
+            System.arraycopy(employees, 0, employeesResize, 0, employees.length);
+            employees = employeesResize;
+        }
+        for (Employee element: c) {
+            add(element);
+        }
+        return true;
     }
 
     @Override
     public boolean addAll(int index, Collection<? extends Employee> c) {
-        return false;
+        if (c.size() + size > employees.length) {
+            Employee[] employeesResize = new Employee[employees.length + c.size()];
+            System.arraycopy(employees, 0, employeesResize, 0, employees.length);
+            employees = employeesResize;
+        }
+        System.arraycopy(employees, index, employees, index + c.size(), c.size());
+        int k = index;
+        for (Employee element : c) {
+            employees[k] = element;
+            k++;
+        }
+        return true;
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        return false;
+        for (Object element: c) {
+            remove(element);
+        }
+        return true;
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        return false;
+        for (Employee element: employees) {
+            if (!c.contains(element))
+                remove(element);
+        }
+        return true;
     }
 
     @Override
     public void clear() {
-
+        for (Employee element: employees) {
+                element = null;
+        }
+        size = 0;
     }
 
     /*
@@ -189,10 +233,9 @@ public class Department implements EmployeeGroup{
     @Override
     public int getEmployeesQuantity(JobTitlesEnum jobTitle){
         int employeesQuatity = 0;
-        for (int i = 0; i < size; i++) {
-            if (employees[i].getJobTitle().equals(jobTitle)) {
+        for (Employee element: employees) {
+            if (element.getJobTitle().equals(jobTitle))
                 employeesQuatity++;
-            }
         }
         return employeesQuatity;
     }
@@ -204,9 +247,10 @@ public class Department implements EmployeeGroup{
 
     public Employee[] getEmployees(JobTitlesEnum jobTitle) {
         Employee[] employeesByJobTitle = new Employee[getEmployeesQuantity(jobTitle)];
-        for (int j = 0, k = 0; j < size; j++) {
-            if (employees[j].getJobTitle().equals(jobTitle)) {
-                employeesByJobTitle[k] = employees[j];
+        int k = 0;
+        for (Employee element: employees) {
+            if (element.getJobTitle().equals(jobTitle)) {
+                employeesByJobTitle[k] = element;
                 k++;
             }
         }
@@ -240,10 +284,9 @@ public class Department implements EmployeeGroup{
     public Employee mostValuableEmployee() {
         Employee bestEmployeeInDepartment;
         bestEmployeeInDepartment = getEmployees()[0];
-        for (int i = 0; i < size; i++) {
-            if (employees[i].getSalary() > bestEmployeeInDepartment.getSalary()) {
-                bestEmployeeInDepartment = employees[i];
-            }
+        for (Employee element: employees) {
+            if (element.getSalary() > bestEmployeeInDepartment.getSalary())
+                bestEmployeeInDepartment = element;
         }
         return bestEmployeeInDepartment;
     }
@@ -253,8 +296,8 @@ public class Department implements EmployeeGroup{
      */
 
     public boolean hasEmployee(String firstName, String secondName) {
-        for (int i = 0; i < size; i++) {
-            if (employees[i].getFirstName().equals(firstName) & employees[i].getSecondName().equals(secondName)) {
+        for (Employee element: employees) {
+            if (element.getFirstName().equals(firstName) & element.getSecondName().equals(secondName)) {
                 return true;
             }
         }
@@ -286,9 +329,9 @@ public class Department implements EmployeeGroup{
     @Override
     public Employee getEmployee(String firstName, String secondName) {
         Employee getEmployee = null;
-        for (int i = 0; i < size; i++) {
-            if (employees[i].getFirstName().equals(firstName) & employees[i].getSecondName().equals(secondName)) {
-                getEmployee = employees[i];
+        for (Employee element: employees) {
+            if (element.getFirstName().equals(firstName) & element.getSecondName().equals(secondName)) {
+                getEmployee = element;
                 return getEmployee;
             }
         }
@@ -347,9 +390,9 @@ public class Department implements EmployeeGroup{
     @Override
     public int travellers() {
         int travellers = 0;
-        for (int i = 0; i < size; i++) {
-            if (employees[i] instanceof StaffEmployee)
-                if (((StaffEmployee) employees[i]).size() > 0) {
+        for (Employee element: employees) {
+            if (element instanceof StaffEmployee)
+                if (((StaffEmployee) element).size() > 0) {
                     travellers++;
                 }
         }
@@ -442,47 +485,123 @@ public class Department implements EmployeeGroup{
 
     @Override
     public Employee get(int index) {
-        return null;
+        return employees[index];
     }
 
     @Override
     public Employee set(int index, Employee element) {
-        return null;
+        Employee getEmployee = employees[index];
+        employees[index] = element;
+        return getEmployee;
     }
 
     @Override
     public void add(int index, Employee element) {
-
+        if (size + 1 >= employees.length) {
+            Employee[] employeesResize = new Employee[employees.length + 1];
+            System.arraycopy(employees, 0, employeesResize, 0, employees.length);
+            employees = employeesResize;
+        }
+        System.arraycopy(employees, index, employees, index + 1, size - index);
+        employees[index] = element;
     }
 
     @Override
     public Employee remove(int index) {
-        return null;
+        Employee removedElement = employees[index];
+        System.arraycopy(employees, index + 1, employees, index, size - index);
+        size--;
+        return removedElement;
     }
 
     @Override
     public int indexOf(Object o) {
-        return 0;
+        for (int i = 0; i < size; i++) {
+            if (employees[i].equals(o))
+                return i;
+        }
+        return -1;
     }
 
     @Override
     public int lastIndexOf(Object o) {
-        return 0;
+        for (int i = size; i > 0; i--) {
+            if (employees[i].equals(o))
+                return i;
+        }
+        return -1;
     }
 
     @Override
     public ListIterator<Employee> listIterator() {
-        return null;
+        return listIterator(-1);
     }
 
     @Override
     public ListIterator<Employee> listIterator(int index) {
-        return null;
+        return new ListIterator<Employee>() {
+            int current = index;
+
+            @Override
+            public boolean hasNext() {
+                return current < size;
+            }
+
+            @Override
+            public Employee next() {
+                if (hasNext())
+                    return employees[current++];
+                return employees[current];
+            }
+
+            @Override
+            public boolean hasPrevious() {
+                return current > 0;
+            }
+
+            @Override
+            public Employee previous() {
+                if (hasPrevious())
+                    return employees[current--];
+                return employees[current];
+            }
+
+            @Override
+            public int nextIndex() {
+                if (hasNext())
+                    return current + 1;
+                return current;
+            }
+
+            @Override
+            public int previousIndex() {
+                if (hasPrevious())
+                    return current - 1;
+                return current;
+            }
+
+            @Override
+            public void remove() {
+                Department.this.remove(current);
+            }
+
+            @Override
+            public void set(Employee employee) {
+                Department.this.set(current, employee);
+            }
+
+            @Override
+            public void add(Employee employee) {
+                Department.this.add(current, employee);
+            }
+        };
     }
 
     @Override
     public List<Employee> subList(int fromIndex, int toIndex) {
-        return null;
+        List<Employee> subList = new Department(this.name, toIndex - fromIndex);
+        subList.addAll(Arrays.asList(employees).subList(fromIndex, toIndex));
+        return subList;
     }
 
     /*
@@ -493,8 +612,8 @@ public class Department implements EmployeeGroup{
     @Override
     public int partTimeEmployeeQuantity() {
         int count = 0;
-        for (int i = 0; i < size; i++) {
-            if (employees[i] instanceof PartTimeEmployee)
+        for (Employee element: employees) {
+            if (element instanceof PartTimeEmployee)
                 count++;
         }
         return count;
@@ -503,8 +622,8 @@ public class Department implements EmployeeGroup{
     @Override
     public int staffEmployeeQuantity() {
         int count = 0;
-        for (int i = 0; i < size; i++) {
-            if (employees[i] instanceof StaffEmployee)
+        for (Employee element: employees) {
+            if (element instanceof StaffEmployee)
                 count++;
         }
         return count;
@@ -518,9 +637,9 @@ public class Department implements EmployeeGroup{
     @Override
     public int nowInTravel() {
         int count = 0;
-        for (int i = 0; i < size; i++) {
-            if (employees[i] instanceof StaffEmployee) {
-                if (((StaffEmployee) employees[i]).isOnTrip())
+        for (Employee element: employees) {
+            if (element instanceof StaffEmployee) {
+                if (((StaffEmployee) element).isOnTrip())
                     count++;
             }
         }
@@ -536,9 +655,9 @@ public class Department implements EmployeeGroup{
     @Override
     public int staffInTravelQuantity(LocalDate startTrip, LocalDate endTrip) {
         int count = 0;
-        for (int i = 0; i < size; i++) {
-            if (employees[i] instanceof StaffEmployee) {
-                if (((StaffEmployee) employees[i]).isOnTrip(startTrip, endTrip) > 0)
+        for (Employee element: employees) {
+            if (element instanceof StaffEmployee) {
+                if (((StaffEmployee) element).isOnTrip(startTrip, endTrip) > 0)
                     count++;
             }
         }
@@ -554,10 +673,10 @@ public class Department implements EmployeeGroup{
     public Employee[] getStaffInTravel(LocalDate startTrip, LocalDate endTrip) {
         Employee[] getStaffNowInTravel = new Employee[staffInTravelQuantity(startTrip, endTrip)];
         int count = 0;
-        for (int i = 0; i < size; i++) {
-            if (employees[i] instanceof StaffEmployee) {
-                if (((StaffEmployee) employees[i]).isOnTrip(startTrip, endTrip) > 0)
-                    getStaffNowInTravel[count++] = employees[i];
+        for (Employee element: employees) {
+            if (element instanceof StaffEmployee) {
+                if (((StaffEmployee) element).isOnTrip(startTrip, endTrip) > 0)
+                    getStaffNowInTravel[count++] = element;
             }
         }
         return getStaffNowInTravel;

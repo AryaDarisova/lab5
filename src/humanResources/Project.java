@@ -55,27 +55,65 @@ public class Project implements EmployeeGroup{
 
     @Override
     public boolean isEmpty() {
-        return false;
+        return size == 0;
     }
 
     @Override
     public boolean contains(Object o) {
+        for (Employee element: this) {
+            if (element.equals(o))
+                return true;
+        }
         return false;
     }
 
     @Override
     public Iterator<Employee> iterator() {
-        return null;
+        return new Iterator<Employee>() {
+            Node node = head;
+            int i = 0;
+
+            @Override
+            public boolean hasNext() {
+                return i < size;
+            }
+
+            @Override
+            public Employee next() {
+                if(hasNext()){
+                    node = node.next;
+                    i++;
+                }
+                return node.value;
+            }
+        };
     }
 
     @Override
     public Object[] toArray() {
-        return new Object[0];
+        Node node = head;
+        Employee[] arrayOfEmployees = new Employee[size];
+        int k = 0;
+        while (node != null) {
+            arrayOfEmployees[k] = node.value;
+            k++;
+            node = node.next;
+        }
+        return arrayOfEmployees;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
-        return null;
+        T[] arrayOfEmployees = (T[]) toArray();
+        if (a.length < size) {
+            return (T[]) Arrays.copyOf(arrayOfEmployees, size, a.getClass());
+        }
+        System.arraycopy(arrayOfEmployees, 0, a, 0, size);
+        if (a.length > size) {
+            a[size] = null;
+        }
+        return a;
     }
 
     @Override
@@ -88,47 +126,83 @@ public class Project implements EmployeeGroup{
     @Override
     public boolean remove(Object o) {
         Node previous = null;
-        Node current;
-        for (current = head; current != null; current = current.next){
+        Node current = head;
+        while (current != null) {
             if (current.value.equals(o)) {
                 removeNode(previous, current);
                 return true;
-            } else {
-                previous = current;
             }
+            previous = current;
+            current = current.next;
         }
-        tail = previous;
         return false;
     }
 
     @Override
     public boolean containsAll(Collection<?> c) {
-        return false;
+        for (Object element : c) {
+            if (!contains(element))
+                return false;
+        }
+        return true;
     }
 
     @Override
     public boolean addAll(Collection<? extends Employee> c) {
-        return false;
+        for (Employee element: c) {
+            add(element);
+        }
+        return true;
     }
 
     @Override
     public boolean addAll(int index, Collection<? extends Employee> c) {
-        return false;
+        for (Employee element: c) {
+            add(index, element);
+            index++;
+        }
+        return true;
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        return false;
+        for (Object element: c) {
+            remove(element);
+        }
+        return true;
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        return false;
+        Node node = head;
+        Node previous = null;
+        while (node != null) {
+            if (!c.contains(node.value)) {
+                removeNode(previous, node);
+                if (previous != null) {
+                    node = previous.next;
+                }
+            }
+            else {
+                previous = node;
+                node = node.next;
+            }
+        }
+        return true;
     }
 
     @Override
     public void clear() {
-
+        Node current = head;
+        Node next;
+        while (current.next != null) {
+            next = current.next;
+            current.next = null;
+            current.value = null;
+            current = next;
+        }
+        head = null;
+        tail = null;
     }
 
     @Override
@@ -162,14 +236,14 @@ public class Project implements EmployeeGroup{
     public boolean remove(String firstName, String secondName) {
         boolean remove = false;
         Node previous = null;
-        Node current;
-
-        for (current = head; current != null; current = current.next){
+        Node current = head;
+        while (current != null) {
             if (current.value.getFirstName().equals(firstName) & current.value.getSecondName().equals(secondName)) {
                 removeNode(previous, current);
             } else {
                 previous = current;
             }
+            current = current.next;
         }
         tail = previous;
         return remove;
@@ -314,47 +388,175 @@ public class Project implements EmployeeGroup{
 
     @Override
     public Employee get(int index) {
+        Node node = head;
+        for (int i = 0; i < size; i++) {
+            if (i == index)
+                return node.value;
+            node = node.next;
+        }
         return null;
     }
 
     @Override
     public Employee set(int index, Employee element) {
+        Node node = head;
+        Employee getEmployee;
+        for (int i = 0; i < size; i++) {
+            if (i == index) {
+                getEmployee = node.value;
+                node.value = element;
+                return getEmployee;
+            }
+            node = node.next;
+        }
         return null;
     }
 
     @Override
     public void add(int index, Employee element) {
-
+        Node current = head;
+        Node previous = null;
+        int i = 0;
+        while (current != null) {
+            if (i == index) {
+                Node nodeElement = new Node(element);
+                nodeElement.next = current;
+                if (previous != null) {
+                    previous.next = nodeElement;
+                }
+                size++;
+            }
+            i++;
+            previous = current;
+            current = current.next;
+        }
     }
 
     @Override
     public Employee remove(int index) {
-        return null;
+        Node previous = null;
+        Node current = head;
+        Employee removed = null;
+        for (int i = 0; i < size; i++) {
+            if (i == index) {
+                removed = current.value;
+                removeNode(previous, current);
+                return removed;
+            }
+            previous = current;
+            current = current.next;
+        }
+        return removed;
     }
 
     @Override
     public int indexOf(Object o) {
-        return 0;
+        Node node = head;
+        for (int i = 0; i < size; i++) {
+            if (node.value.equals(o))
+                return i;
+            node = node.next;
+        }
+        return -1;
     }
 
     @Override
     public int lastIndexOf(Object o) {
-        return 0;
+        Node node = head;
+        int index = -1;
+        for (int i = 0; i < size; i++) {
+            if (node.value.equals(o))
+                index = i;
+            node = node.next;
+        }
+        return index;
     }
 
     @Override
     public ListIterator<Employee> listIterator() {
-        return null;
+        return listIterator(-1);
     }
 
     @Override
     public ListIterator<Employee> listIterator(int index) {
-        return null;
+        return new ListIterator<Employee>() {
+            Node node = head;
+            Node previousNode = null;
+            int currentIndex = index;
+
+            @Override
+            public boolean hasNext() {
+                return currentIndex < size;
+            }
+
+            @Override
+            public Employee next() {
+                if (hasNext()) {
+                    currentIndex++;
+                    previousNode = node;
+                    node = node.next;
+                }
+                return node.value;
+            }
+
+            @Override
+            public boolean hasPrevious() {
+                return currentIndex > 0;
+            }
+
+            @Override
+            public Employee previous() {
+                if (hasPrevious()) {
+                    currentIndex--;
+                    node = previousNode;
+                }
+                return node.value;
+            }
+
+            @Override
+            public int nextIndex() {
+                if (hasNext())
+                    return currentIndex + 1;
+                return currentIndex;
+            }
+
+            @Override
+            public int previousIndex() {
+                if (hasPrevious())
+                    return currentIndex - 1;
+                return currentIndex;
+            }
+
+            @Override
+            public void remove() {
+                Project.this.remove(currentIndex);
+            }
+
+            @Override
+            public void set(Employee employee) {
+                Project.this.set(currentIndex, employee);
+            }
+
+            @Override
+            public void add(Employee employee) {
+                Project.this.add(employee);
+            }
+        };
     }
 
     @Override
     public List<Employee> subList(int fromIndex, int toIndex) {
-        return null;
+        List<Employee> subList = new Project(" ");
+        Node node = head;
+        int index = 0;
+        while (node != null) {
+            if (index >= fromIndex && index <= toIndex) {
+                subList.add(node.value);
+            }
+            index++;
+            node = node.next;
+        }
+        return subList;
     }
 
     /*
