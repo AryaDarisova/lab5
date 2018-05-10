@@ -3,9 +3,7 @@ package humanResources;
 import humanResources.exceptions.IllegalDatesException;
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 public class StaffEmployee extends Employee implements BusinessTraveller{
     private int bonus;
@@ -89,6 +87,87 @@ public class StaffEmployee extends Employee implements BusinessTraveller{
         return getTravels;
     }
 
+    @Override
+    public SortedSet<BusinessTravel> subSet(BusinessTravel fromElement, BusinessTravel toElement) {
+        SortedSet<BusinessTravel> subList = new StaffEmployee(this.getFirstName(), this.getSecondName());
+        ListNode node = head;
+        int indexFromElement = 0, indexToElement = 0;
+        for (int i = 0; i < travelsQuantity; i++) {
+            if (node.value == fromElement) {
+                indexFromElement = i;
+            }
+            if (node.value == toElement) {
+                indexToElement = i;
+            }
+            node = node.next;
+        }
+        int index = 0;
+        while (node != null) {
+            if (index >= indexFromElement && index <= indexToElement) {
+                subList.add(node.value);
+            }
+            index++;
+            node = node.next;
+        }
+        return subList;
+    }
+
+    @Override
+    public SortedSet<BusinessTravel> headSet(BusinessTravel toElement) {
+        SortedSet<BusinessTravel> headSet = new StaffEmployee("", "");
+        ListNode node = head;
+        int indexToElement = 0;
+        for (int i = 0; i < travelsQuantity; i++) {
+            if (node.value == toElement) {
+                indexToElement = i;
+            }
+            node = node.next;
+        }
+        int index = 0;
+        while (node != null) {
+            if (index <= indexToElement) {
+                headSet.add(node.value);
+            }
+            index++;
+            node = node.next;
+        }
+        return headSet;
+    }
+
+    @Override
+    public SortedSet<BusinessTravel> tailSet(BusinessTravel fromElement) {
+        SortedSet<BusinessTravel> tailSet = new StaffEmployee("", "");
+        ListNode node = head;
+        int indexFromElement = 0;
+        for (int i = 0; i < travelsQuantity; i++) {
+            if (node.value == fromElement) {
+                indexFromElement = i;
+            }
+            node = node.next;
+        }
+        int index = 0;
+        while (node != null) {
+            if (index >= indexFromElement) {
+                tailSet.add(node.value);
+            }
+            index++;
+            node = node.next;
+        }
+        return tailSet;
+    }
+
+    @Override
+    public BusinessTravel first() {
+        ListNode node = head;
+        return node.value;
+    }
+
+    @Override
+    public BusinessTravel last() {
+        ListNode node = tail;
+        return node.value;
+    }
+
     private class ListNode {
         ListNode next, previous;
         BusinessTravel value;
@@ -143,6 +222,11 @@ public class StaffEmployee extends Employee implements BusinessTraveller{
     }
 
     @Override
+    public Comparator<? super BusinessTravel> comparator() {
+        return new sortTravels();
+    }
+
+    @Override
     public Iterator<BusinessTravel> iterator() {
         return new Iterator<BusinessTravel>() {
             ListNode node = head;
@@ -191,20 +275,33 @@ public class StaffEmployee extends Employee implements BusinessTraveller{
 
     @Override
     public boolean add(BusinessTravel travel) {
-        LocalDate day = travel.getStartTrip();
-        for (int i = 0; i < travel.getDaysCount(); i++) {
-            for (BusinessTravel x: this.getTravels()) {
-                LocalDate dayTravel = x.getStartTrip();
-                for (int j = 0; j < x.getDaysCount(); j++) {
-                    if (day.isEqual(dayTravel))
-                        throw new IllegalDatesException("Employee already have travel in that time!");
-                    dayTravel = dayTravel.plusDays(1);
+        //т.е. если пересечения в датах метод isOnTrip не имеется (возращает значение 0),
+        //то мы будем добавлять эту поездку
+        if (isOnTrip(travel.getStartTrip(), travel.getEndTrip()) == 0) {
+            ListNode current = head;
+            ListNode previous = null;
+            while (current != null) {
+                //если конец рассматриваемой поездки раньше начала добавляемой, то смотрим
+                //не раньше ли конец и следующей поездки, потому что если у следующей тоже
+                //раньше, то мы должны current.next и уже его начинвать заново рассматривать
+                if (current.value.getEndTrip().isBefore(travel.getStartTrip())) {
+                    if (!current.next.value.getStartTrip().isBefore(travel.getEndTrip())) {
+                        ListNode nodeElement = new ListNode(travel);
+                        nodeElement.next = current;
+                        if (previous != null) {
+                            previous.next = nodeElement;
+                        }
+                        travelsQuantity++;
+                    }
                 }
+                previous = current;
+                current = current.next;
             }
-            day = day.plusDays(1);
         }
-        ListNode node = new ListNode(travel);
-        addNode(node);
+        else {
+            throw new IllegalDatesException("Dates of travel that you would to add intersects " +
+                    "with the travel dates of this Employee! ");
+        }
         return true;
     }
 
